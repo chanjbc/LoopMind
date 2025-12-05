@@ -72,6 +72,8 @@ const App: React.FC = () => {
     activeRoutes = viewMode === 'naive' ? result.naive.routes : result.optimized.routes;
   }
 
+  console.log('App rendered');
+
   return (
     <div className="flex h-screen w-screen bg-slate-50 overflow-hidden font-sans">
       

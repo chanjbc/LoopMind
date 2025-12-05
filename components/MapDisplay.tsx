@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents, Polyline } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { Location, RoutePlan } from '../types';
 import { Warehouse, MapPin } from 'lucide-react';
@@ -63,6 +63,23 @@ const BoundsFitter: React.FC<{ locations: Location[]; routes: RoutePlan[] | null
   return null;
 };
 
+// helper to handle map resize and invalidation
+const ResizeInvalidate: React.FC = () => {
+  const map = useMap();
+  useEffect(() => {
+    // ensure proper size after mount and after any layout changes
+    const tick = () => map.invalidateSize();
+    // run once on next tick (fixes initial hidden/zero-size issues)
+    const t = setTimeout(tick, 0);
+    window.addEventListener('resize', tick);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener('resize', tick);
+    };
+  }, [map]);
+  return null;
+};
+
 const MapDisplay: React.FC<MapDisplayProps> = ({ locations, onMapClick, activeRoutes, mode }) => {
   // Default center (San Francisco)
   const defaultCenter = { lat: 37.7749, lng: -122.4194 };
@@ -76,6 +93,7 @@ const MapDisplay: React.FC<MapDisplayProps> = ({ locations, onMapClick, activeRo
         style={{ height: '100%', width: '100%' }}
         className="outline-none"
       >
+        <ResizeInvalidate />
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
